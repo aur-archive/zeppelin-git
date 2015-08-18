@@ -1,0 +1,69 @@
+pkgname=zeppelin-git
+
+pkgver=0.208.g5b7d9e4
+pkgrel=1
+pkgdesc="The world's most wonderful remotely controllable media server."
+arch=('i686' 'x86_64' 'armv6h' 'armv7h')
+url="https://github.com/giszo/zeppelin"
+license=('GPL3')
+
+depends=('mac'
+         'flac'
+         'mpg123'
+         'boost'
+         'boost-libs'
+         'alsa-lib'
+         'libsamplerate'
+         'sqlite'
+         'jsoncpp'
+         'libvorbis'
+         'libogg'
+         'wavpack'
+         )
+
+makedepends=('scons' 'git')
+
+optdepends=('zeppelin-file-server-git'
+            'zeppelin-jsonrpc-remote-git'
+            'zeppelin-http-server-git'
+            )
+
+install=zeppelin.install
+
+
+source=('git://github.com/giszo/zeppelin'
+        'zeppelin.conf.json'
+        )
+
+backup=etc/zeppelin.conf.json
+
+md5sums=('SKIP' 'SKIP')
+
+pkgver() #
+{
+  cd "${srcdir}/zeppelin"
+  # git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+  echo 0.`git rev-list --count HEAD`.g`git rev-parse --short HEAD`
+}
+
+build() #
+{
+  cd "${srcdir}/zeppelin"
+  scons
+}
+
+package() #
+{
+  cd "${srcdir}/zeppelin"
+  mkdir -pv ${pkgdir}/usr
+  scons install PREFIX=${pkgdir}/usr
+  install -d -m 0755 ${pkgdir}/etc/
+  install -m 0644 ${srcdir}/zeppelin.conf.json ${pkgdir}/etc/
+}
+
+check() #
+{
+  cd "${srcdir}/zeppelin"
+  scons unit_test
+  ./unit_test
+}
